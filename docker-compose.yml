@@ -1,0 +1,60 @@
+# service description
+services:
+
+  # cloudflare tunnel
+  cloudflare-tunnel:
+    image: cloudflare/cloudflared
+    #build:
+    #  context: ./src
+    #  dockerfile: ./Dockerfile
+    container_name: cloudflare-tunnel
+    hostname: cloudflare-tunnel
+    restart: unless-stopped
+    network_mode: "host"
+    command: tunnel run
+    extra_hosts:
+    - ''
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - ./config/hosts:/etc/hosts
+    environment:
+      - "TUNNEL_TOKEN=${CLOUDFLARE_TUNNEL_TOKEN}"
+    labels:
+      # enbale watchtower updates
+      - "com.centurylinklabs.watchtower.enable=true"
+  cloudflared:
+    image: cloudflare/cloudflared:1506-110b2b4c807f
+    volumes:
+      - ./Cloudflared/logs:/logs
+    # restart: always
+    container_name: scv_cloudflared_c
+    # command: tunnel --no-autoupdate --log-directory /logs run --token ${CLOUDFLARED_DEV_TUNNEL_TOKEN}
+    command: tunnel --log-directory /logs run --token ${CLOUDFLARE_TUNNEL_TOKEN}
+    extra_hosts:
+      - host.docker.internal:host-gateway
+    deploy:
+      resources:
+        limits:
+          cpus: "2"
+          memory: 100M
+        reservations:
+          cpus: "1"
+          memory: 50M
+  cloudflared1:
+    image: cloudflare/cloudflared:1506-110b2b4c807f
+    volumes:
+      - ./Cloudflared/logs:/logs
+    # restart: always
+    container_name: scv_cloudflared_a
+    # command: tunnel --no-autoupdate --log-directory /logs run --token ${CLOUDFLARED_DEV_TUNNEL_TOKEN}
+    command: tunnel --log-directory /logs run --token ${CLOUDFLARE_TUNNEL_TOKEN_DB}
+    extra_hosts:
+      - host.docker.internal:host-gateway
+    deploy:
+      resources:
+        limits:
+          cpus: "2"
+          memory: 100M
+        reservations:
+          cpus: "1"
+          memory: 50M
