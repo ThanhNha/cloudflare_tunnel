@@ -1,0 +1,26 @@
+# service description
+services:
+  # cloudflare mysql
+  cloudflared-mysql:
+    image: cloudflare/cloudflared:1506-110b2b4c807f
+    volumes:
+      - ./Cloudflared/logs:/logs
+    restart: always
+    container_name: scv_cloudflared_mysql
+    command: tunnel --log-directory /logs run --token ${CLOUDFLARE_TUNNEL_TOKEN_DB}
+    extra_hosts:
+      - host.docker.internal:host-gateway
+    networks:
+      - webnet
+    deploy:
+      resources:
+        limits:
+          cpus: "2"
+          memory: 100M
+        reservations:
+          cpus: "1"
+          memory: 50M
+networks:
+  webnet:
+    name: webnet
+    driver: bridge
